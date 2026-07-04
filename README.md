@@ -68,7 +68,20 @@ written to the audit log.
   **revenue protected** (at-risk deals with an approved action), and
   **hours saved** vs. manual weekly deal review.
 
-### 4. MCP server (`mcp/server.ts`)
+### 4. Pipeline copilot (`src/lib/chat.ts`)
+
+An "Ask your pipeline" chat panel on the dashboard. Questions like *"Which
+deals are at risk and why?"* are answered by an LLM grounded in the live scan —
+same risk engine, same cited evidence, never invented numbers. Uses OpenAI with
+a deterministic rule-based fallback, like the drafting agent.
+
+### 5. Live updates (Supabase Realtime)
+
+Every mutation (draft created, decision made) broadcasts on a realtime channel;
+every open dashboard refreshes instantly — approve a draft in one window and
+watch "Revenue protected" jump in another.
+
+### 6. MCP server (`mcp/server.ts`)
 
 ```bash
 npm run mcp
@@ -111,11 +124,16 @@ src/lib/seed.ts       deterministic mock CRM data (dates relative to today)
 src/lib/risk.ts       explainable risk-scoring engine
 src/lib/forecast.ts   naive vs. risk-adjusted forecast
 src/lib/agent.ts      OpenAI drafting agent + rule-based fallback
+src/lib/chat.ts       pipeline copilot: LLM grounded in the live scan + fallback
 src/lib/store.ts      data layer: Supabase (Postgres) or in-memory fallback
 src/lib/supabase.ts   Supabase server client (null when env vars are missing)
+src/lib/supabase-browser.ts  browser client for realtime dashboard sync
 supabase/schema.sql   Postgres schema (deals, action_drafts, audit_log)
-src/app/api/*         REST endpoints (pipeline, draft, approve/edit/dismiss)
+src/app/api/*         REST endpoints (pipeline, chat, draft, approve/edit/dismiss)
 src/app/page.tsx      dashboard UI (Next.js App Router + Tailwind)
+src/app/copilot/      full-page pipeline copilot chat
+src/app/forecast/     forecast page (KPIs + per-deal breakdown)
+src/app/audit/        audit-trail page (live-updating)
 mcp/server.ts         MCP server over stdio (shares the same store)
 ```
 

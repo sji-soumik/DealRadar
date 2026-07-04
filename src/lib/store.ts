@@ -1,3 +1,4 @@
+import { SupabaseClient } from "@supabase/supabase-js";
 import { ActionDraft, AuditEntry, Deal, DraftEmail } from "./types";
 import { buildSeedDeals } from "./seed";
 import { getSupabase } from "./supabase";
@@ -24,6 +25,19 @@ function memory(): MemoryStore {
     globalStore.__dealradar = { deals: buildSeedDeals(), drafts: [], audit: [], counter: 1 };
   }
   return globalStore.__dealradar;
+}
+
+// Fire-and-forget realtime broadcast so open dashboards refresh instantly
+// after a mutation. Best-effort: failures never block the request.
+let syncChannel: ReturnType<SupabaseClient["channel"]> | null = null;
+
+function broadcastChange(kind: string): void {
+  const supabase = getSupabase();
+  if (!supabase) return;
+  if (!syncChannel) syncChannel = supabase.channel("dealradar-sync");
+  Promise.resolve(
+    syncChannel.send({ type: "broadcast", event: "changed", payload: { kind } })
+  ).catch((err) => console.error("Realtime broadcast failed:", err));
 }
 
 function nextId(prefix: string): string {
@@ -239,6 +253,7 @@ export async function createDraft(draft: Omit<ActionDraft, "id">): Promise<Actio
     source: full.source,
   });
   if (error) throw new Error(`Supabase createDraft failed: ${error.message}`);
+  broadcastChange("draft_created");
   return full;
 }
 
@@ -266,6 +281,7 @@ export async function resolveDraft(
     .select()
     .maybeSingle();
   if (error) throw new Error(`Supabase resolveDraft failed: ${error.message}`);
+  broadcastChange("draft_resolved");
   return data ? draftFromRow(data as DraftRow) : undefined;
 }
 
@@ -291,6 +307,7 @@ export async function logAudit(
     detail: full.detail,
   });
   if (error) throw new Error(`Supabase logAudit failed: ${error.message}`);
+  broadcastChange("audit_logged");
   return full;
 }
 

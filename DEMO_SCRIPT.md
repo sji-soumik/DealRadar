@@ -1,4 +1,4 @@
-# DealRadar — Demo Video Script (~2.5 minutes)
+# DealRadar — Demo Video Script (~3 minutes)
 
 > Before recording: run `npm run dev`, open http://localhost:3000, and click
 > "Rescan pipeline" once so the page is fresh. Keep the browser full-screen.
@@ -73,7 +73,30 @@ audit log.
 The moment I approve, 'Revenue protected' jumps to $185,000, and the
 dashboard tracks the hours of manual deal review this replaces every week."
 
-## Scene 5 — MCP integration + close (2:05–2:30)
+## Scene 4.5 — Ask your pipeline (2:05–2:30)
+
+**On screen:** scroll to the "Ask your pipeline" panel, click the suggested
+question **"Which deals are at risk and why?"**, let the answer render.
+
+**Say:**
+
+"You don't even have to read the table. Ask the pipeline directly — 'Which
+deals are at risk and why?' — and the copilot answers from the live scan:
+the same deals, the same cited evidence, real numbers. It's grounded in the
+data on screen, so it can't invent a deal or a dollar figure."
+
+## Scene 4.6 — Live sync + persistence (optional, +15s)
+
+**On screen:** two browser windows side by side. Approve a pending draft in
+one; watch the KPIs and audit log update instantly in the other.
+
+**Say:**
+
+"And this isn't a demo toy. Everything is backed by Postgres on Supabase —
+approvals sync live to every open dashboard, and the audit trail survives
+restarts."
+
+## Scene 5 — MCP integration + close (2:30–2:55)
 
 **On screen:** either show `mcp/server.ts` in the editor, or a terminal
 running `npm run mcp`, or Claude/Cursor calling `assess_pipeline`.
@@ -95,5 +118,7 @@ actually trust. That's DealRadar."
 - If you have an OpenAI key in `.env.local`, the draft will be GPT-written and
   the card shows "GPT-drafted" — mention it. Without a key it says
   "rule-based draft", which you can frame as the offline fallback.
-- If you want a clean slate between takes, restart the dev server — the
-  in-memory store (drafts + audit log) resets.
+- If you want a clean slate between takes, run this in the Supabase SQL
+  editor (data persists across restarts now):
+  `truncate audit_log; truncate action_drafts;`
+  (Without Supabase configured, restarting the dev server resets instead.)

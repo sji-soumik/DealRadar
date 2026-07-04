@@ -1,6 +1,8 @@
 "use client";
 
 import { ReactNode, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 /* ---------- SJ Innovation dot-matrix logo ---------- */
 
@@ -71,37 +73,44 @@ const icons = {
 /* ---------- Sidebar ---------- */
 
 interface NavItem {
+  href: string;
   label: string;
-  icon: string;
+  icon: keyof typeof icons;
   badge?: number;
-  tag?: string;
-  active?: boolean;
-  chevron?: boolean;
 }
 
-function NavLink({ item }: { item: NavItem }) {
+const NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "Dashboard", icon: "grid" },
+  { href: "/copilot", label: "Pipeline Copilot", icon: "radar" },
+  { href: "/forecast", label: "Forecast", icon: "chart" },
+  { href: "/audit", label: "Audit log", icon: "clipboard" },
+];
+
+const PAGE_TITLES: Record<string, string> = {
+  "/": "Dashboard",
+  "/copilot": "Pipeline Copilot",
+  "/forecast": "Forecast",
+  "/audit": "Audit log",
+};
+
+function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   return (
-    <button
+    <Link
+      href={item.href}
       className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition ${
-        item.active
+        active
           ? "bg-surface-2 font-semibold text-fg shadow-[inset_2px_0_0_0_#38bdf8]"
           : "text-muted hover:bg-surface-2/50 hover:text-fg"
       }`}
     >
-      <Icon d={icons[item.icon as keyof typeof icons]} className={item.active ? "text-sky-400" : ""} />
+      <Icon d={icons[item.icon]} className={active ? "text-sky-400" : ""} />
       <span className="flex-1 text-left">{item.label}</span>
       {item.badge !== undefined && item.badge > 0 && (
         <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
           {item.badge}
         </span>
       )}
-      {item.tag && (
-        <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold text-muted">
-          {item.tag}
-        </span>
-      )}
-      {item.chevron && <Icon d={icons.chevronDown} className="h-3.5 w-3.5 text-muted" />}
-    </button>
+    </Link>
   );
 }
 
@@ -123,6 +132,8 @@ export default function AppShell({
   pendingActions?: number;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const pathname = usePathname();
+  const pageTitle = PAGE_TITLES[pathname] ?? "Dashboard";
 
   return (
     <div className="flex min-h-screen">
@@ -141,29 +152,23 @@ export default function AppShell({
             </button>
           </div>
 
-          {/* Search */}
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-2.5 rounded-xl border border-border-line bg-surface px-3 py-2.5 text-muted">
-              <Icon d={icons.search} className="h-4 w-4" />
-              <span className="flex-1 text-[13px]">Search...</span>
-              <kbd className="rounded-md border border-border-line bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold">
-                ⌘ K
-              </kbd>
-            </div>
-          </div>
-
           <nav className="flex-1 overflow-y-auto px-3 pb-4">
-            <NavLink item={{ label: "Top Deals", icon: "trophy" }} />
-
-            <SectionLabel>Home</SectionLabel>
-            <NavLink item={{ label: "Dashboard", icon: "grid", badge: atRiskCount, active: true }} />
-            <NavLink item={{ label: "Pipeline", icon: "radar", badge: pendingActions }} />
-            <NavLink item={{ label: "Forecast", icon: "chart" }} />
-            <NavLink item={{ label: "Meetings", icon: "calendar", chevron: true }} />
-            <NavLink item={{ label: "Productivity", icon: "clipboard" }} />
-
-            <SectionLabel>Projects &amp; Delivery</SectionLabel>
-            <NavLink item={{ label: "Projects", icon: "briefcase", chevron: true }} />
+            <SectionLabel>Workspace</SectionLabel>
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.href}
+                item={{
+                  ...item,
+                  badge:
+                    item.href === "/"
+                      ? atRiskCount
+                      : item.href === "/audit"
+                        ? pendingActions
+                        : undefined,
+                }}
+                active={pathname === item.href}
+              />
+            ))}
           </nav>
         </aside>
       )}
@@ -222,9 +227,11 @@ export default function AppShell({
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 border-b border-border-line bg-background px-6 py-3 text-sm">
           <Icon d={icons.home} className="h-4 w-4 text-muted" />
-          <span className="text-muted">Home</span>
+          <Link href="/" className="text-muted transition hover:text-fg">
+            Home
+          </Link>
           <Icon d={icons.chevronRight} className="h-3.5 w-3.5 text-muted" />
-          <span className="font-semibold text-fg">Dashboard</span>
+          <span className="font-semibold text-fg">{pageTitle}</span>
         </div>
 
         <div className="flex-1">{children}</div>
