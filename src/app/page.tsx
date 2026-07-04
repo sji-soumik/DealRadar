@@ -10,6 +10,7 @@ import {
 } from "@/lib/types";
 import { categoryBadge, money, moneyFull, shortDate } from "@/components/format";
 import DealDetail from "@/components/DealDetail";
+import AppShell from "@/components/AppShell";
 
 interface PipelinePayload {
   deals: Deal[];
@@ -42,9 +43,11 @@ export default function Dashboard() {
 
   if (!data) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-muted">
-        Scanning pipeline…
-      </main>
+      <AppShell>
+        <main className="flex min-h-[60vh] items-center justify-center text-muted">
+          Scanning pipeline…
+        </main>
+      </AppShell>
     );
   }
 
@@ -54,14 +57,15 @@ export default function Dashboard() {
   const pendingDrafts = drafts.filter((d) => d.status === "pending");
 
   return (
+    <AppShell atRiskCount={atRiskCount} pendingActions={pendingDrafts.length}>
     <main className="mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
       <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            <span className="text-accent">Deal</span>Radar
+          <h1 className="bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
+            DealRadar
           </h1>
-          <p className="text-sm text-muted">
+          <p className="mt-1 text-sm text-muted">
             Autonomous pipeline-health & forecast-integrity agent · {deals.length} open
             deals scanned · {atRiskCount} at risk · {watchCount} on watch
           </p>
@@ -245,6 +249,7 @@ export default function Dashboard() {
         DealRadar · hackathon build · also available as an MCP server (`npm run mcp`)
       </footer>
     </main>
+    </AppShell>
   );
 }
 

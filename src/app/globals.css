@@ -2,6 +2,7 @@
 
 :root {
   --background: #0b0f17;
+  --sidebar: #060a10;
   --surface: #111827;
   --surface-2: #1a2334;
   --border: #232f46;
@@ -15,6 +16,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border-line: var(--border);
