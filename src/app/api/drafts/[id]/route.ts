@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStore, logAudit } from "@/lib/store";
+import { getDeal, getDraft, logAudit, resolveDraft } from "@/lib/store";
 import { DraftEmail } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +14,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const store = getStore();
-  const draft = store.drafts.find((d) => d.id === id);
+  const draft = await getDraft(id);
   if (!draft) {
     return NextResponse.json({ error: "Draft not found" }, { status: 404 });
   }
@@ -28,19 +27,19 @@ export async function POST(
     return NextResponse.json({ error: "Invalid decision" }, { status: 400 });
   }
 
-  draft.status = body.decision;
-  draft.resolvedAt = new Date().toISOString();
-  if (body.decision === "edited" && body.email) {
-    draft.email = body.email;
-  }
+  const updated = await resolveDraft(
+    id,
+    body.decision,
+    body.decision === "edited" ? body.email : undefined
+  );
 
-  const deal = store.deals.find((d) => d.id === draft.dealId);
-  logAudit({
+  const deal = await getDeal(draft.dealId);
+  await logAudit({
     actor: "Manager",
     action: `draft_${body.decision}`,
     dealId: draft.dealId,
     detail: `${body.decision === "dismissed" ? "Dismissed" : body.decision === "edited" ? "Edited and approved" : "Approved"} agent action for ${deal?.company ?? draft.dealId}: "${draft.nextBestAction}"`,
   });
 
-  return NextResponse.json({ draft });
+  return NextResponse.json({ draft: updated ?? draft });
 }

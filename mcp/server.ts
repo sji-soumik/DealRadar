@@ -7,12 +7,22 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { buildSeedDeals } from "../src/lib/seed";
 import { assessAll, assessDeal } from "../src/lib/risk";
 import { buildForecast } from "../src/lib/forecast";
 import { draftAction } from "../src/lib/agent";
+// The store reads env lazily on first use, after loadEnvFile below has run.
+import { getDeal, getDeals, protectedDealIds } from "../src/lib/store";
 
-const deals = buildSeedDeals();
+// tsx does not auto-load env files the way Next.js does; pick up the same
+// .env.local so Supabase (and OpenAI) work here too. Missing files are fine —
+// the store falls back to in-memory seed data.
+for (const file of [".env.local", ".env"]) {
+  try {
+    process.loadEnvFile(file);
+  } catch {
+    // file not present — ignore
+  }
+}
 
 function json(data: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -30,7 +40,7 @@ server.registerTool(
   },
   async () =>
     json(
-      deals.map((d) => ({
+      (await getDeals()).map((d) => ({
         id: d.id,
         company: d.company,
         name: d.name,
@@ -52,6 +62,7 @@ server.registerTool(
     inputSchema: {},
   },
   async () => {
+    const deals = await getDeals();
     const assessments = assessAll(deals);
     return json(
       [...assessments.values()]
@@ -83,7 +94,7 @@ server.registerTool(
     inputSchema: { dealId: z.string().describe("Deal ID, e.g. D-1001") },
   },
   async ({ dealId }) => {
-    const deal = deals.find((d) => d.id === dealId);
+    const deal = await getDeal(dealId);
     if (!deal) return json({ error: `Deal ${dealId} not found` });
     return json({ deal, assessment: assessDeal(deal) });
   }
@@ -98,8 +109,9 @@ server.registerTool(
     inputSchema: {},
   },
   async () => {
+    const deals = await getDeals();
     const assessments = assessAll(deals);
-    return json(buildForecast(deals, assessments, new Set()));
+    return json(buildForecast(deals, assessments, await protectedDealIds()));
   }
 );
 
@@ -112,7 +124,7 @@ server.registerTool(
     inputSchema: { dealId: z.string().describe("Deal ID, e.g. D-1001") },
   },
   async ({ dealId }) => {
-    const deal = deals.find((d) => d.id === dealId);
+    const deal = await getDeal(dealId);
     if (!deal) return json({ error: `Deal ${dealId} not found` });
     const assessment = assessDeal(deal);
     const draft = await draftAction(deal, assessment);

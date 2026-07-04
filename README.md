@@ -21,6 +21,18 @@ cp .env.example .env.local
 # set OPENAI_API_KEY=sk-...
 ```
 
+Optional — enable persistence with Supabase (otherwise an in-memory store is
+used and data resets on restart):
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. Run `supabase/schema.sql` in the SQL editor (Dashboard → SQL Editor).
+3. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
+   `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
+
+The 12 demo deals are seeded automatically on first run. Deals, action drafts,
+and the audit log then survive restarts, and the MCP server reads/writes the
+same database as the dashboard.
+
 ## What it does
 
 ### 1. Risk scoring engine (`src/lib/risk.ts`)
@@ -99,11 +111,13 @@ src/lib/seed.ts       deterministic mock CRM data (dates relative to today)
 src/lib/risk.ts       explainable risk-scoring engine
 src/lib/forecast.ts   naive vs. risk-adjusted forecast
 src/lib/agent.ts      OpenAI drafting agent + rule-based fallback
-src/lib/store.ts      in-memory store + audit log
+src/lib/store.ts      data layer: Supabase (Postgres) or in-memory fallback
+src/lib/supabase.ts   Supabase server client (null when env vars are missing)
+supabase/schema.sql   Postgres schema (deals, action_drafts, audit_log)
 src/app/api/*         REST endpoints (pipeline, draft, approve/edit/dismiss)
 src/app/page.tsx      dashboard UI (Next.js App Router + Tailwind)
-mcp/server.ts         MCP server over stdio
+mcp/server.ts         MCP server over stdio (shares the same store)
 ```
 
-Stack: Next.js 16, React 19, TypeScript, Tailwind CSS v4, OpenAI SDK,
+Stack: Next.js 16, React 19, TypeScript, Tailwind CSS v4, Supabase, OpenAI SDK,
 `@modelcontextprotocol/sdk`.
