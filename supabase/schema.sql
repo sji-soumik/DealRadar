@@ -44,12 +44,23 @@ create table if not exists audit_log (
   detail text not null
 );
 
+create table if not exists chat_messages (
+  id text primary key,
+  session_id text not null,
+  created_at timestamptz not null default now(),
+  role text not null check (role in ('user', 'assistant')),
+  content text not null,
+  source text check (source in ('openai', 'fallback'))
+);
+
 create index if not exists action_drafts_deal_id_idx on action_drafts (deal_id);
 create index if not exists audit_log_timestamp_idx on audit_log (timestamp desc);
+create index if not exists chat_messages_session_idx on chat_messages (session_id, created_at);
 
 alter table deals enable row level security;
 alter table action_drafts enable row level security;
 alter table audit_log enable row level security;
+alter table chat_messages enable row level security;
 
 -- The demo deals are seeded automatically by the app on first run (dates are
 -- generated relative to "today" so the data looks live). To re-seed from

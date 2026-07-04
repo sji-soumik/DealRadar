@@ -3,8 +3,10 @@
 DealRadar inspects every open deal in the pipeline, scores slippage risk from
 **explainable signals**, drafts the next-best action and re-engagement email for
 at-risk deals (human-approved, fully audited), and shows a **risk-adjusted
-forecast** next to the naive pipeline sum. It also ships as an **MCP server**
-callable from Claude Desktop or Cursor.
+forecast** next to the naive pipeline sum. A **pipeline copilot** answers
+free-form questions grounded in the live scan, everything is persisted in
+**Supabase (Postgres)** with realtime sync across open pages, and it also
+ships as an **MCP server** callable from Claude Desktop or Cursor.
 
 ## Quick start
 
@@ -150,6 +152,7 @@ src/app/page.tsx      dashboard UI (Next.js App Router + Tailwind)
 src/app/copilot/      full-page pipeline copilot chat
 src/app/forecast/     forecast page (KPIs + per-deal breakdown)
 src/app/audit/        audit-trail page (live-updating)
+src/components/       AppShell (sidebar nav), PipelineChat, DealDetail, Stats
 mcp/server.ts         MCP server over stdio (shares the same store)
 ```
 

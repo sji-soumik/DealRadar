@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { ActionDraft, AuditEntry, Deal, DraftEmail } from "./types";
+import { ActionDraft, AuditEntry, ChatMessageRecord, Deal, DraftEmail } from "./types";
 import { buildSeedDeals } from "./seed";
 import { getSupabase } from "./supabase";
 
@@ -15,6 +15,7 @@ interface MemoryStore {
   deals: Deal[];
   drafts: ActionDraft[];
   audit: AuditEntry[];
+  chat: ChatMessageRecord[];
   counter: number;
 }
 
@@ -22,8 +23,10 @@ const globalStore = globalThis as unknown as { __dealradar?: MemoryStore };
 
 function memory(): MemoryStore {
   if (!globalStore.__dealradar) {
-    globalStore.__dealradar = { deals: buildSeedDeals(), drafts: [], audit: [], counter: 1 };
+    globalStore.__dealradar = { deals: buildSeedDeals(), drafts: [], audit: [], chat: [], counter: 1 };
   }
+  // Older hot-reloaded stores may predate the chat field.
+  globalStore.__dealradar.chat ??= [];
   return globalStore.__dealradar;
 }
 
@@ -321,6 +324,78 @@ export async function getAudit(limit = 50): Promise<AuditEntry[]> {
     .limit(limit);
   if (error) throw new Error(`Supabase getAudit failed: ${error.message}`);
   return (data as AuditRow[]).map(auditFromRow);
+}
+
+// ---------------------------------------------------------------------------
+// Chat history
+// ---------------------------------------------------------------------------
+
+interface ChatRow {
+  id: string;
+  session_id: string;
+  created_at: string;
+  role: ChatMessageRecord["role"];
+  content: string;
+  source: ChatMessageRecord["source"];
+}
+
+function chatFromRow(r: ChatRow): ChatMessageRecord {
+  return {
+    id: r.id,
+    sessionId: r.session_id,
+    createdAt: new Date(r.created_at).toISOString(),
+    role: r.role,
+    content: r.content,
+    source: r.source ?? null,
+  };
+}
+
+export async function getChatMessages(sessionId: string): Promise<ChatMessageRecord[]> {
+  const supabase = getSupabase();
+  if (!supabase) return memory().chat.filter((m) => m.sessionId === sessionId);
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .select("*")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`Supabase getChatMessages failed: ${error.message}`);
+  return (data as ChatRow[]).map(chatFromRow);
+}
+
+export async function saveChatMessage(
+  message: Omit<ChatMessageRecord, "id" | "createdAt">
+): Promise<ChatMessageRecord> {
+  const full: ChatMessageRecord = {
+    ...message,
+    id: nextId("MSG"),
+    createdAt: new Date().toISOString(),
+  };
+  const supabase = getSupabase();
+  if (!supabase) {
+    memory().chat.push(full);
+    return full;
+  }
+  const { error } = await supabase.from("chat_messages").insert({
+    id: full.id,
+    session_id: full.sessionId,
+    created_at: full.createdAt,
+    role: full.role,
+    content: full.content,
+    source: full.source,
+  });
+  if (error) throw new Error(`Supabase saveChatMessage failed: ${error.message}`);
+  return full;
+}
+
+export async function clearChatMessages(sessionId: string): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    const store = memory();
+    store.chat = store.chat.filter((m) => m.sessionId !== sessionId);
+    return;
+  }
+  const { error } = await supabase.from("chat_messages").delete().eq("session_id", sessionId);
+  if (error) throw new Error(`Supabase clearChatMessages failed: ${error.message}`);
 }
 
 /** Deal IDs whose at-risk state has an approved or edited action (counted as "protected"). */

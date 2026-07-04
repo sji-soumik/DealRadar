@@ -13,11 +13,36 @@ const SUGGESTIONS = [
   "Why is the forecast lower than the pipeline total?",
 ];
 
+// Stable per-browser session id so chat history persists across reloads.
+function getSessionId(): string {
+  const key = "dealradar-chat-session";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = `CHAT-${Math.random().toString(36).slice(2, 12)}`;
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
 export default function PipelineChat({ fullPage = false }: { fullPage?: boolean }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const id = getSessionId();
+    setSessionId(id);
+    fetch(`/api/chat?sessionId=${encodeURIComponent(id)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.messages?.length) setMessages(data.messages);
+      })
+      .catch(() => {
+        // History is a nice-to-have; the chat still works without it.
+      });
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -34,7 +59,7 @@ export default function PipelineChat({ fullPage = false }: { fullPage?: boolean 
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, sessionId }),
       });
       const data = await res.json();
       setMessages([
@@ -68,7 +93,14 @@ export default function PipelineChat({ fullPage = false }: { fullPage?: boolean 
         </h2>
         {messages.length > 0 && (
           <button
-            onClick={() => setMessages([])}
+            onClick={() => {
+              setMessages([]);
+              if (sessionId) {
+                fetch(`/api/chat?sessionId=${encodeURIComponent(sessionId)}`, {
+                  method: "DELETE",
+                }).catch(() => {});
+              }
+            }}
             className="text-xs text-muted transition hover:text-fg"
           >
             Clear

@@ -96,6 +96,15 @@ export interface AuditEntry {
   detail: string;
 }
 
+export interface ChatMessageRecord {
+  id: string;
+  sessionId: string;
+  createdAt: string;
+  role: "user" | "assistant";
+  content: string;
+  source: "openai" | "fallback" | null; // null for user messages
+}
+
 export interface ForecastRow {
   dealId: string;
   company: string;
