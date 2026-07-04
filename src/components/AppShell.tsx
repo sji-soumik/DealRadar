@@ -5,52 +5,26 @@ import { ReactNode, useState } from "react";
 /* ---------- SJ Innovation dot-matrix logo ---------- */
 
 function SjMark({ size = 34 }: { size?: number }) {
-  // Diagonal dot-matrix mark inspired by the SJ Innovation logo.
-  const dots: { x: number; y: number; r: number; c: string }[] = [];
-  const cols = 7;
-  const rows = 5;
-  const palette = ["#f59e0b", "#fb923c", "#f97316", "#fbbf24"];
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      // keep dots inside a rising diagonal band
-      const band = col - row;
-      if (band < -1 || band > 3) continue;
-      dots.push({
-        x: 6 + col * 8,
-        y: 42 - row * 8 - col * 1.5,
-        r: 2.6,
-        c: palette[(col + row) % palette.length],
-      });
-    }
-  }
   return (
-    <svg
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/sji-mark.png"
+      alt="SJ Innovation"
       width={size}
       height={size}
-      viewBox="0 0 64 52"
-      aria-hidden
-      className="shrink-0"
-    >
-      {dots.map((d, i) => (
-        <circle key={i} cx={d.x} cy={d.y} r={d.r} fill={d.c} />
-      ))}
-    </svg>
+      className="shrink-0 object-contain"
+    />
   );
 }
 
 function SjLogo() {
   return (
-    <div className="flex items-center gap-2.5">
-      <SjMark />
-      <div className="leading-none">
-        <span className="block text-[15px] font-extrabold tracking-wide text-sky-400">
-          SJ <span className="text-fg">INNOVATION</span>
-        </span>
-        <span className="mt-0.5 block text-[8px] font-medium uppercase tracking-[0.3em] text-muted">
-          Interactive
-        </span>
-      </div>
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/sji-logo.png"
+      alt="SJ Innovation — AI First Solutions"
+      className="h-10 w-auto shrink-0 object-contain"
+    />
   );
 }
 
@@ -84,20 +58,12 @@ const icons = {
     "M8 2v4m8-4v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
   briefcase:
     "M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-8 0h8m-8 0H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3M3 13h18",
-  growth: "M3 17l6-6 4 4 8-8m0 0h-5m5 0v5",
-  review:
-    "M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1Zm7 2h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m1 7 2 2 4-4",
-  bot: "M12 3v3m-6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-7Zm3 3h.01M15 13h.01M3 13v3m18-3v3",
-  sparkle:
-    "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm7 11 .9 2.6L22.5 18l-2.6.9L19 21.5l-.9-2.6L15.5 18l2.6-.9L19 14Z",
   bell: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9Zm-4.3 13a2 2 0 0 1-3.4 0",
   sun: "M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-15v2m0 16v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M2 12h2m16 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4",
   panel: "M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm5 0v16",
   home: "M3 10.5 12 3l9 7.5M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5",
   chevronRight: "m9 6 6 6-6 6",
   chevronDown: "m6 9 6 6 6-6",
-  refresh:
-    "M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6",
   trophy:
     "M8 21h8m-4-4v4m-6-17h12v5a6 6 0 0 1-12 0V4Zm12 2h2a2 2 0 0 1-2 4M6 6H4a2 2 0 0 0 2 4",
 };
@@ -198,18 +164,7 @@ export default function AppShell({
 
             <SectionLabel>Projects &amp; Delivery</SectionLabel>
             <NavLink item={{ label: "Projects", icon: "briefcase", chevron: true }} />
-
-            <SectionLabel>Team &amp; People</SectionLabel>
-            <NavLink item={{ label: "My Growth", icon: "growth", tag: "Beta" }} />
-            <NavLink item={{ label: "My Reviews", icon: "review" }} />
           </nav>
-
-          {/* Bottom section */}
-          <div className="border-t border-border-line px-3 py-3">
-            <NavLink item={{ label: "Refresh Permissions", icon: "refresh" }} />
-            <NavLink item={{ label: "AI Agents", icon: "bot" }} />
-            <NavLink item={{ label: "Vision", icon: "sparkle" }} />
-          </div>
         </aside>
       )}
 
