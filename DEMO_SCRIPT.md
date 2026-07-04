@@ -2,6 +2,8 @@
 
 > Before recording: run `npm run dev`, open http://localhost:3000, and click
 > "Rescan pipeline" once so the page is fresh. Keep the browser full-screen.
+> The sidebar navigates between four working pages: Dashboard, Pipeline
+> Copilot, Forecast, and Audit log — you'll click through them during the demo.
 
 ---
 
@@ -75,26 +77,29 @@ dashboard tracks the hours of manual deal review this replaces every week."
 
 ## Scene 4.5 — Ask your pipeline (2:05–2:30)
 
-**On screen:** scroll to the "Ask your pipeline" panel, click the suggested
-question **"Which deals are at risk and why?"**, let the answer render.
+**On screen:** click **Pipeline Copilot** in the sidebar, then click the
+suggested question **"Which deals are at risk and why?"**, let the answer
+render.
 
 **Say:**
 
-"You don't even have to read the table. Ask the pipeline directly — 'Which
-deals are at risk and why?' — and the copilot answers from the live scan:
-the same deals, the same cited evidence, real numbers. It's grounded in the
-data on screen, so it can't invent a deal or a dollar figure."
+"You don't even have to read the table. Open the Pipeline Copilot and ask
+directly — 'Which deals are at risk and why?' — and it answers from the live
+scan: the same deals, the same cited evidence, real numbers. It's grounded in
+the data you just saw, so it can't invent a deal or a dollar figure."
 
 ## Scene 4.6 — Live sync + persistence (optional, +15s)
 
-**On screen:** two browser windows side by side. Approve a pending draft in
-one; watch the KPIs and audit log update instantly in the other.
+**On screen:** two browser windows side by side — the **Audit log** page in
+one, the dashboard in the other. Approve a pending draft on the dashboard;
+watch the audit page update instantly.
 
 **Say:**
 
 "And this isn't a demo toy. Everything is backed by Postgres on Supabase —
-approvals sync live to every open dashboard, and the audit trail survives
-restarts."
+decisions sync live to every open page, and the audit trail survives
+restarts. There's also a dedicated Forecast page with the per-deal
+risk-adjusted breakdown."
 
 ## Scene 5 — MCP integration + close (2:30–2:55)
 
@@ -114,7 +119,10 @@ actually trust. That's DealRadar."
 
 ## Recording tips
 
-- Total target: 2:20–2:40. Practice Scene 3 once — it's the densest.
+- Total target: 2:50–3:10 (add ~15s if you include Scene 4.6). Practice
+  Scene 3 once — it's the densest.
+- The copilot's first answer takes a few seconds — keep talking while it
+  renders, or pre-warm it with one question before recording.
 - If you have an OpenAI key in `.env.local`, the draft will be GPT-written and
   the card shows "GPT-drafted" — mention it. Without a key it says
   "rule-based draft", which you can frame as the offline fallback.

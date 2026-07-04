@@ -13,6 +13,15 @@ npm install
 npm run dev        # dashboard at http://localhost:3000
 ```
 
+The sidebar navigates between four pages:
+
+| Page | Route | What's there |
+| --- | --- | --- |
+| Dashboard | `/` | KPIs, forecast bars, risk-sorted pipeline table, audit log |
+| Pipeline Copilot | `/copilot` | chat with your pipeline, grounded in the live scan |
+| Forecast | `/forecast` | naive vs. risk-adjusted KPIs + per-deal breakdown |
+| Audit log | `/audit` | full audit trail, live-updating |
+
 Optional — enable LLM drafting (otherwise a deterministic rule-based drafter is
 used, so the demo always works offline):
 
@@ -70,16 +79,17 @@ written to the audit log.
 
 ### 4. Pipeline copilot (`src/lib/chat.ts`)
 
-An "Ask your pipeline" chat panel on the dashboard. Questions like *"Which
-deals are at risk and why?"* are answered by an LLM grounded in the live scan —
-same risk engine, same cited evidence, never invented numbers. Uses OpenAI with
-a deterministic rule-based fallback, like the drafting agent.
+A full-page "Ask your pipeline" chat at `/copilot` (Pipeline Copilot in the
+sidebar). Questions like *"Which deals are at risk and why?"* are answered by
+an LLM grounded in the live scan — same risk engine, same cited evidence,
+never invented numbers. Uses OpenAI with a deterministic rule-based fallback,
+like the drafting agent.
 
 ### 5. Live updates (Supabase Realtime)
 
 Every mutation (draft created, decision made) broadcasts on a realtime channel;
-every open dashboard refreshes instantly — approve a draft in one window and
-watch "Revenue protected" jump in another.
+every open dashboard and audit page refreshes instantly — approve a draft in
+one window and watch "Revenue protected" jump in another.
 
 ### 6. MCP server (`mcp/server.ts`)
 
@@ -102,7 +112,9 @@ Exposes `list_deals`, `assess_pipeline`, `assess_deal`, `get_forecast`, and
 }
 ```
 
-## Demo script (2 minutes)
+## Demo script (~3 minutes)
+
+Full narrated script in [DEMO_SCRIPT.md](DEMO_SCRIPT.md). The short version:
 
 1. Open the dashboard — 12 open deals scanned, headline KPIs show the naive
    forecast (**$598K**) vs. the risk-adjusted forecast (**$307K**): a **$290K
@@ -114,7 +126,11 @@ Exposes `list_deals`, `assess_pipeline`, `assess_deal`, `get_forecast`, and
    rationale, and a ready-to-send re-engagement email.
 4. **Approve** it — the audit log records both the agent draft and the manager
    decision, and **Revenue protected** jumps to $185K.
-5. Ask Claude/Cursor (via MCP): *"Which of my deals are at risk and why?"* —
+5. Open **Pipeline Copilot** in the sidebar and ask *"Which deals are at risk
+   and why?"* — grounded answers with the same cited evidence.
+6. Show **Forecast** and **Audit log** pages from the sidebar — the audit page
+   updates live as decisions are made in another window.
+7. Ask Claude/Cursor (via MCP): *"Which of my deals are at risk and why?"* —
    same engine, same cited reasons, in chat.
 
 ## Architecture
